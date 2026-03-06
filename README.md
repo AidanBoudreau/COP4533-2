@@ -1,5 +1,5 @@
 # Programming Assignment 2 - Cache Replacement
-Aidan Boudreau
+Aidan Boudreau  
 UFID: 22043059
 
 
@@ -11,7 +11,7 @@ The input file is "input.txt" the structure is that the first line contains two 
 The second line is a list of size m that has the cache requests that will be made in the order written (r). Each request is an integer that is seperated by a space.
 
 example input:
-3 5
+3 5  
 1 2 3 4 1
 
 ## Compile Program
@@ -26,8 +26,8 @@ to then run the program use the command
 The output will be written into the "output.txt" file where it will display 3 rows showcasing the number of misses that FIFO, LRU, and OPTFF respectively have made.
 
 example output:
-FIFO  : 5
-LRU   : 5
+FIFO  : 5  
+LRU   : 5  
 OPTFF : 4
 
 ## Assumptions
