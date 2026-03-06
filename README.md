@@ -73,16 +73,14 @@ Reasoning: The three start out the same with 3 misses as the caches are empty an
 
 ## Question 3
 ### Prove that OPTFF is optimal.
-
-OPTFF delays misses as soon as possible.  
-By evicting the farthest in the future "hit" for each block in the cache, OPTFF ensures that there is no earlier miss possible.  
+ 
 Proof by contradiciton.  
-Suppose at iteration i we must evict something (cache is full + miss)  
-Our cache contains blocks {b1, b2, b3}.  
-OPTFF choice: evict block whos "hit" will be farthest in the future (bx).  
+Suppose at iteration i we must evict something (because cache is full + miss)  
+Our cache contains blocks {B1, B2, B3... Bn}.  
+OPTFF choice: evict block whos next occurance will be farthest in the future (Bx).  
 Alternative choice: Any other algorithm (A) evicts another block by.  
-Since OPTFF chose bx to be replaced we know that by < bx in the requests line.  
-When the iteration by must come, Alorithm A causes a miss as it has been evicted, whereas OPTFF causes a hit.  
+Since OPTFF chose Bx to be replaced we know that By must come before Bx in the requests line.  
+When the iteration By must come, Alorithm A causes a miss as it has been evicted, whereas OPTFF causes a hit.  
 This creates a gap where misses(A) >= misses(OPTFF) + 1.  
 For the rest of the sequence, the algorithms face the same requests.  
 In the worst case, they make the same replacements the rest of the length and the gap persists.  
