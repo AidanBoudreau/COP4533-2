@@ -4,7 +4,7 @@ UFID: 22043059
 
 
 ## Overview
-This program simulates FIFO (First In First Out), LRU (Least Recently Used), and OPTFF (Optimal farthest in future) cache replacement.
+This program simulates FIFO (First In First Out), LRU (Least Recently Used), and OPTFF (Belady's farthest in future) cache replacement.
 
 ## Input format
 The input file is "input.txt" the structure is that the first line contains two integers containing a space in the middle. The first integer represents the number of caches in the program (k) and the second integer represents the amount of cache requests that the program will make (m).  
@@ -68,9 +68,22 @@ Yes. There exists such a case. Ex: r = {1, 2, 3, 4, 1}
 FIFO misses = 5  
 LRU misses = 5  
 OPTFF misses = 4  
+
 Reasoning: The three start out the same with 3 misses as the caches are empty and the requests are not in the cache. On the fourth iteration, all algorithms must replace a block in the cache. FIFO and LRU both replace the item in cache 0 since that is when the first item was inserted and last accessed. But OPTFF knows that this is a bad move since the next cache request wants 1 so it will not swap out cache 0, but instead cache 1.
 
 ## Question 3
 ### Prove that OPTFF is optimal.
 
-
+OPTFF delays misses as soon as possible.  
+By evicting the farthest in the future "hit" for each block in the cache, OPTFF ensures that there is no earlier miss possible.  
+Proof by contradiciton.  
+Suppose at iteration i we must evict something (cache is full + miss)  
+Our cache contains blocks {b1, b2, b3}.  
+OPTFF choice: evict block whos "hit" will be farthest in the future (bx).  
+Alternative choice: Any other algorithm (A) evicts another block by.  
+Since OPTFF chose bx to be replaced we know that by < bx in the requests line.  
+When the iteration by must come, Alorithm A causes a miss as it has been evicted, whereas OPTFF causes a hit.  
+This creates a gap where misses(A) >= misses(OPTFF) + 1.  
+For the rest of the sequence, the algorithms face the same requests.  
+In the worst case, they make the same replacements the rest of the length and the gap persists.  
+Hence OPTFF is optimal.
