@@ -39,7 +39,7 @@ Requests are seperated by a space,
 Assumes input.txt exists.
 
 ## Report
-### Question 1
+## Question 1
 
 | Input File | k | m | FIFO | LRU | OPTFF |
 |-----------|---|---|------|-----|-------|
@@ -55,4 +55,22 @@ File 2 requests = 1 2 3 4 5 1 2 6 1 2 3 4 5 6 1 2 3 4 5 1 2 6 1 2 3 4 5 6 1 2 3 
 File 3 requests = 1 2 3 4 5 6 1 2 7 1 2 3 4 5 6 7 1 2 3 4 5 6 1 2 7 1 2 3 4 5 6 7 1 2 3 4 5 6 1 2 7 1 2 3 4 5 6 7 1 2 3 4 5 6 1 2 7 1 2 3 4 5 6 7  
 File 4 requests = 1 2 3 1 4 5 2 1 6 2 1 3 7 2 1 4 8 2 1 5 1 2 3 1 4 5 2 1 6 2 1 3 7 2 1 4 8 2 1 5 1 2 3 1 4 5 2 1 6 2 1 3 7 2 1 4 8 2 1 5  
 File 5 requests = 1 2 1 3 1 2 4 1 2 3 5 1 2 4 6 1 2 5 7 1 1 2 1 3 1 2 4 1 2 3 5 1 2 4 6 1 2 5 7 1 1 2 1 3 1 2 4 1 2 3 5 1 2 4 6 1 2 5 7 1  
+
+### Does OPTFF have the fewest misses?
+Yes. in every file input, OPTFF has the fewest misses.
+
+### How does LIFO compare to LRU?
+LIFO had a total of 231 misses while LRU had a total of 229 misses in the same inputs. This difference of 2 is extremely small compared to the amount of cache requests that were made. This shows that the two algorithms performed comparably with the test inputs.
+
+## Question 2
+### Is there such a case where OPTFF has less misses than FIFO or LRU with k=3?
+Yes. There exists such a case. Ex: r = {1, 2, 3, 4, 1}  
+FIFO misses = 5  
+LRU misses = 5  
+OPTFF misses = 4  
+Reasoning: The three start out the same with 3 misses as the caches are empty and the requests are not in the cache. On the fourth iteration, all algorithms must replace a block in the cache. FIFO and LRU both replace the item in cache 0 since that is when the first item was inserted and last accessed. But OPTFF knows that this is a bad move since the next cache request wants 1 so it will not swap out cache 0, but instead cache 1.
+
+## Question 3
+### Prove that OPTFF is optimal.
+
 
