@@ -42,6 +42,7 @@ Assumes input.txt exists.
 ### Question 1
 
 | Input File | k | m | FIFO | LRU | OPTFF |
+|-----------|---|---|------|-----|-------|
 | File 1 | 3 | 60 | 45 | 50 | 31 |
 | File 2 | 4 | 56 | 44 | 48 | 23 |
 | File 3 | 5 | 64 | 52 | 56 | 23 |
