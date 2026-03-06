@@ -15,6 +15,7 @@ example input:
 1 2 3 4 1
 
 ## Compile Program
+After downloading zip and extracting,  
 open terminal and go into the PROGASSIGN2 folder, optionally you can change input.txt to the specifications above, then use command  
 g++ main.cpp -o cache
 
