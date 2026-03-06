@@ -16,12 +16,13 @@ example input:
 
 ## Compile Program
 After downloading zip and extracting,  
-open terminal and go into the PROGASSIGN2 folder, optionally you can change input.txt to the specifications above, then use command  
-g++ main.cpp -o cache
+open terminal and go into the innermost COP4533-2-main folder, optionally you can change input.txt to the specifications above, then use command based off your operating system to make cache.exe.  
+Windows: g++ main.cpp -o cache
 
 ## Run Program
 to then run the program use the command  
-./cache
+Windows: cache  
+Mac/Linux: ./cache
 
 ## View output
 The output will be written into the "output.txt" file where it will display 3 rows showcasing the number of misses that FIFO, LRU, and OPTFF respectively have made.
@@ -37,7 +38,8 @@ The first line contains exactly k and m,
 The second line contains m values,  
 k must be >= 1,  
 Requests are seperated by a space,  
-Assumes input.txt exists.
+Assumes input.txt exists.  
+User has c++ compiler such as g++ installed to the PATH.
 
 ## Report
 ## Question 1
