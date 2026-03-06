@@ -5,22 +5,20 @@ using namespace std;
 #include <climits>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 int runFIFO(int k, vector<int> r){
-    int misses;
-    cout << "FIFO: " << endl;
-
     vector<int> blockVect(k, -1);
     int missCounter = 0;
-    int hitCounter = 0;
     vector<int> accessVect;
 
     for (int i = 0; i < r.size(); i++){
-        cout<<"iteration " << i+1 << endl;
+        bool complete = false;
+
         for (int j = 0; j < blockVect.size(); j++){
             if (blockVect[j]==r[i]){
                 //cache hit
-                hitCounter++;
+                complete = true;
                 break;
             }
             if (blockVect[j]==-1){
@@ -28,61 +26,152 @@ int runFIFO(int k, vector<int> r){
                 blockVect[j] = r[i];
                 missCounter++;
                 accessVect.push_back(blockVect[j]);
+                complete = true;
                 break;
             }
-            if (j==blockVect.size()-1){
-                //request is not in cache
-                for (int k = 0; k < blockVect.size(); k++){
-                    //find the cache block that has first in cache, replace it with the request
-                    if (blockVect[k] == accessVect[0]){
-                        blockVect[k]=r[i];
-                    }
-                }
-                //take out first item from FIFO list, make the request next in queue
-                accessVect.erase(accessVect.begin());
-                accessVect.push_back(r[i]);
-                missCounter++;
-            }
         }
-        for (int i = 0; i < blockVect.size(); i++) {
-            cout << blockVect[i] << endl;
+        if (!complete){
+            //request is not in cache
+            for (int j = 0; j < blockVect.size(); j++){
+                //find the cache block that has first in cache, replace it with the request
+                if (blockVect[j] == accessVect[0]){
+                    blockVect[j]=r[i];
+                    break;
+                }
+            }
+            //take out first item from FIFO list, make the request next in queue
+            accessVect.erase(accessVect.begin());
+            accessVect.push_back(r[i]);
+            missCounter++;
         }
     }
-    misses=missCounter;
-    cout << "number of FIFO misses: " << missCounter <<endl;
-    cout << "number of FIFO hits: " << hitCounter <<endl;
-    return misses;
+    return missCounter;
+}
+
+int runLRU(int k, vector<int> r){
+    vector<int> blockVect(k, -1);
+    int missCounter = 0;
+    vector<int> accessVect;
+
+    for (int i = 0; i < r.size(); i++){
+        bool complete = false;
+
+        for (int j = 0; j < blockVect.size(); j++){
+            if (blockVect[j]==r[i]){
+                //cache hit
+                //remove request from LRU vector and place it on the end
+                accessVect.erase(std::remove(accessVect.begin(), accessVect.end(), r[i]), accessVect.end());
+                accessVect.push_back(r[i]);
+                complete = true;
+                break;
+            }
+            if (blockVect[j]==-1){
+                //empty cache
+                blockVect[j] = r[i];
+                missCounter++;
+                accessVect.push_back(blockVect[j]);
+                complete = true;
+                break;
+            }
+        }
+        if (!complete){
+            //request is not in cache
+            for (int j = 0; j < blockVect.size(); j++){
+                //find the cache block that has first in cache, replace it with the request
+                if (blockVect[j] == accessVect[0]){
+                    blockVect[j]=r[i];
+                }
+            }
+            //take out first item from FIFO list, make the request next in queue
+            accessVect.erase(accessVect.begin());
+            accessVect.push_back(r[i]);
+            missCounter++;
+        }
+    }
+    return missCounter;
+}
+
+int runOPTFF(int k, vector<int> r){
+    vector<int> blockVect(k, -1);
+    int missCounter = 0;
+
+    for (int i = 0; i < r.size(); i++){
+        bool complete = false;
+
+        for (int j = 0; j < blockVect.size(); j++){
+            if (blockVect[j]==r[i]){
+                //cache hit
+                complete = true;
+                break;
+            }
+            if (blockVect[j]==-1){
+                //empty cache
+                blockVect[j] = r[i];
+                missCounter++;
+                complete = true;
+                break;
+            }
+        }
+        if (!complete){
+            //request is not in cache
+            int maxDistance = -1;
+            int blockToSwap = 0;
+
+            //find the max (cache block next appearance distance)
+            for (int j = 0; j < blockVect.size(); j++){
+                int currdistance = INT_MAX;
+
+                //last request, always a miss, break to replace block[0]
+                if (i==r.size()-1){
+                    break;
+                }
+
+                for (int p = i+1; p < r.size();p++){
+                    if (r[p] == blockVect[j]){
+                        currdistance = p - i; 
+                        break;
+                    }
+                }
+                if (currdistance > maxDistance){
+                    maxDistance = currdistance;
+                    blockToSwap = j;
+                }
+            }
+            blockVect[blockToSwap] = r[i];
+            missCounter++;
+        }
+    }
+    return missCounter;
 }
 
 int main()
 {
     ifstream file("input.txt");
+
     string line;
-    
     vector<int> km;
     vector<int> r;
 
-    if (file.is_open()){
-        //first line
-        getline(file, line);
-        string del = " ";
-        auto pos = line.find(del);
-        while (pos!=string::npos){
-            km.push_back(stoi(line.substr(0, pos)));
-            line.erase(0, pos + del.length());
-            pos = line.find(del);
-        }
-        km.push_back(stoi(line));
-        //second line
-        getline(file, line);
-        del = " ";
-        pos = line.find(del);
-        while (pos!=string::npos){
-            r.push_back(stoi(line.substr(0, pos)));
-            line.erase(0, pos + del.length());
-            pos = line.find(del);
-        }
-        r.push_back(stoi(line));
+    //first line
+    getline(file, line);
+    istringstream l1(line);
+    int num;
+    while (l1 >> num){
+        km.push_back(num);
+    }
+
+    //second line
+    getline(file, line);
+    istringstream l2(line);
+    while (l2 >> num){
+        r.push_back(num);
+    }
+
+    file.close();
+
+    if (km.size() != 2){
+        cout<< "wrong input format"<<endl;
+        return -1;
     }
 
     int k = km[0];
@@ -92,155 +181,17 @@ int main()
         std::cout << "k needs to be greater than or equal to 1" << std:: endl;
         return -1;
     }
-
-    cout << "k: " << k << endl;
-    cout << "m: " << m << endl;
-    cout << "r: ";
-    for (int i = 0; i < r.size(); i++) {
-        cout << r[i] << " ";
+    if (m != r.size()){
+        cout<< "stated request size is not the same as actual request size" <<endl;
+        return -1;
     }
-    cout<<endl;
 
-    int missesLRU;
-    int missesOPTFF;
-
+    //run cache replacement algorithms
     int missesFIFO = runFIFO(k, r);
+    int missesLRU = runLRU(k, r);
+    int missesOPTFF = runOPTFF(k, r);
 
-    cout << "LRU: " << endl;
-    vector<int> accessVect;
-    vector<int> blockVect2(k, NULL);
-    vector<int> blockVect=blockVect2;
-    int missCounter = 0;
-    int hitCounter = 0;
-
-    for (int i = 0; i < r.size(); i++){
-        cout<<"iteration " << i+1 << endl;
-        for (int j = 0; j < blockVect.size(); j++){
-            if (blockVect[j]==r[i]){
-                //cache hit
-                //remove request from LRU vector and place it on the end
-                accessVect.erase(std::remove(accessVect.begin(), accessVect.end(), r[i]), accessVect.end());
-                accessVect.push_back(r[i]);
-                hitCounter++;
-                break;
-            }
-            if (blockVect[j]==NULL){
-                //empty cache
-                blockVect[j] = r[i];
-                missCounter++;
-                accessVect.push_back(blockVect[j]);
-                break;
-            }
-            if (j==blockVect.size()-1){
-                //request is not in cache
-                for (int k = 0; k < blockVect.size(); k++){
-                    //find the cache block that has first in cache, replace it with the request
-                    if (blockVect[k] == accessVect[0]){
-                        blockVect[k]=r[i];
-                    }
-                }
-                //take out first item from FIFO list, make the request next in queue
-                accessVect.erase(accessVect.begin());
-                accessVect.push_back(r[i]);
-                missCounter++;
-            }
-        }
-        for (int i = 0; i < blockVect.size(); i++) {
-            cout << blockVect[i] << endl;
-        }
-    }
-    missesLRU = missCounter;
-    cout << "number of LRU misses: " << missCounter <<endl;
-    cout << "number of LRU hits: " << hitCounter <<endl;
-
-
-
-
-
-
-    cout << "OPTFF: " << endl;
-
-    vector<int> blockVect3(k, NULL);
-    blockVect=blockVect3;
-    missCounter = 0;
-    hitCounter = 0;
-
-    int blockToSwap = 0;
-    int max=0;
-    int temp=0;
-    int indexFar = 0;
-
-    for (int i = 0; i < r.size(); i++){
-        cout<<"iteration " << i+1 << endl;
-        for (int j = 0; j < blockVect.size(); j++){
-            if (blockVect[j]==r[i]){
-                //cache hit
-                hitCounter++;
-                break;
-            }
-            if (blockVect[j]==NULL){
-                //empty cache
-                blockVect[j] = r[i];
-                missCounter++;
-                break;
-            }
-            if (j==blockVect.size()-1){
-                //request is not in cache
-                blockToSwap = 0;
-                //find the max (cache block next appearance distance)
-                for (int k = 0; k < blockVect.size(); k++){
-                    //last request is a miss, replace first cache
-                    if (i==r.size()-1){
-                        blockVect[0] = r[i];
-                        break;
-                    }
-                    temp = 1;
-                    for (int p = i+1; p < r.size();p++){
-                        cout<<"block: "<<k<<" | index: "<<p<< " | value: "<<r[p]<<" | temp: "<<temp<< " | max: "<<max<<endl;
-                        if (r[p] == blockVect[k]){
-                            if (temp > max){
-                                max = temp;
-                                indexFar = p;
-                                break;
-                            }
-                            break;
-                        }
-                        temp++;
-                        //cache block doesnt appear again
-                        if ((p == r.size()-1) && (max!=INT_MAX)){
-                            max = INT_MAX;  //ensure this is the block that is replaced
-                            cout<<"looking for "<<blockVect[k]<<endl;
-                            for (int v =0;v<r.size();v++){//indexFar is just some index that has the replace block
-                                if (blockVect[k]==r[v]){
-                                    indexFar=v;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                cout<<"max val: "<<max<<endl;
-                cout<<"far index: "<<indexFar<<endl;
-                for (int k = 0; k < blockVect.size(); k++){
-                    //find the cache block with same val at indexFar, replace it with request
-                    if (blockVect[k] == r[indexFar]){
-                        blockVect[k]=r[i];
-                    }
-                }
-                missCounter++;
-            }
-            max=0;
-        }
-        for (int i = 0; i < blockVect.size(); i++) {
-            cout << blockVect[i] << endl;
-        }
-    }
-    missesOPTFF = missCounter;
-    cout << "number of OPTFF misses: " << missCounter <<endl;
-    cout << "number of OPTFF hits: " << hitCounter <<endl;
-
-
-
+    //write output
     ofstream outputFile;
     outputFile.open("output.txt");
     outputFile << "FIFO  : "<<missesFIFO<<"\n";
