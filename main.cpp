@@ -3,31 +3,14 @@ using namespace std;
 #include <vector>
 #include <algorithm>
 #include <climits>
+#include <fstream>
+#include <string>
 
-int main()
-{
-    int k = 3;
-    int m=12;
-
-    vector<int> r{1,2,3,4,1,2,5,1,2,3,4,5};
-
-    if (k < 1){
-        std::cout << "k needs to be greater than or equal to 1" << std:: endl;
-        return -1;
-    }
-
-    cout << "k: " << k << endl;
-    cout << "m: " << m << endl;
-    cout << "r: ";
-    for (int i = 0; i < r.size(); i++) {
-        cout << r[i] << " ";
-    }
-    cout<<endl;
-
-
+int runFIFO(int k, vector<int> r){
+    int misses;
     cout << "FIFO: " << endl;
 
-    vector<int> blockVect(k, NULL);
+    vector<int> blockVect(k, -1);
     int missCounter = 0;
     int hitCounter = 0;
     vector<int> accessVect;
@@ -40,7 +23,7 @@ int main()
                 hitCounter++;
                 break;
             }
-            if (blockVect[j]==NULL){
+            if (blockVect[j]==-1){
                 //empty cache
                 blockVect[j] = r[i];
                 missCounter++;
@@ -65,21 +48,70 @@ int main()
             cout << blockVect[i] << endl;
         }
     }
+    misses=missCounter;
     cout << "number of FIFO misses: " << missCounter <<endl;
     cout << "number of FIFO hits: " << hitCounter <<endl;
+    return misses;
+}
 
-
+int main()
+{
+    ifstream file("input.txt");
+    string line;
     
+    vector<int> km;
+    vector<int> r;
 
+    if (file.is_open()){
+        //first line
+        getline(file, line);
+        string del = " ";
+        auto pos = line.find(del);
+        while (pos!=string::npos){
+            km.push_back(stoi(line.substr(0, pos)));
+            line.erase(0, pos + del.length());
+            pos = line.find(del);
+        }
+        km.push_back(stoi(line));
+        //second line
+        getline(file, line);
+        del = " ";
+        pos = line.find(del);
+        while (pos!=string::npos){
+            r.push_back(stoi(line.substr(0, pos)));
+            line.erase(0, pos + del.length());
+            pos = line.find(del);
+        }
+        r.push_back(stoi(line));
+    }
 
+    int k = km[0];
+    int m = km[1];
+
+    if (k < 1){
+        std::cout << "k needs to be greater than or equal to 1" << std:: endl;
+        return -1;
+    }
+
+    cout << "k: " << k << endl;
+    cout << "m: " << m << endl;
+    cout << "r: ";
+    for (int i = 0; i < r.size(); i++) {
+        cout << r[i] << " ";
+    }
+    cout<<endl;
+
+    int missesLRU;
+    int missesOPTFF;
+
+    int missesFIFO = runFIFO(k, r);
 
     cout << "LRU: " << endl;
-
+    vector<int> accessVect;
     vector<int> blockVect2(k, NULL);
-    blockVect=blockVect2;
-    missCounter = 0;
-    hitCounter = 0;
-    accessVect.clear();
+    vector<int> blockVect=blockVect2;
+    int missCounter = 0;
+    int hitCounter = 0;
 
     for (int i = 0; i < r.size(); i++){
         cout<<"iteration " << i+1 << endl;
@@ -117,6 +149,7 @@ int main()
             cout << blockVect[i] << endl;
         }
     }
+    missesLRU = missCounter;
     cout << "number of LRU misses: " << missCounter <<endl;
     cout << "number of LRU hits: " << hitCounter <<endl;
 
@@ -202,6 +235,16 @@ int main()
             cout << blockVect[i] << endl;
         }
     }
+    missesOPTFF = missCounter;
     cout << "number of OPTFF misses: " << missCounter <<endl;
     cout << "number of OPTFF hits: " << hitCounter <<endl;
+
+
+
+    ofstream outputFile;
+    outputFile.open("output.txt");
+    outputFile << "FIFO  : "<<missesFIFO<<"\n";
+    outputFile << "LRU   : "<<missesLRU<<"\n";
+    outputFile << "OPTFF : "<<missesOPTFF<<"\n";
+    outputFile.close();
 }
