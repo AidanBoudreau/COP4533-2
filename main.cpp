@@ -2,16 +2,14 @@
 using namespace std;
 #include <vector>
 #include <algorithm>
+#include <climits>
 
 int main()
 {
-    int k = 2;
-    int m=9;
+    int k = 3;
+    int m=12;
 
-    vector<int> r{1,2,3,3,2,1};
-        r.push_back(2);
-        r.push_back(1);
-        r.push_back(3);
+    vector<int> r{1,2,3,4,1,2,5,1,2,3,4,5};
 
     if (k < 1){
         std::cout << "k needs to be greater than or equal to 1" << std:: endl;
@@ -37,16 +35,16 @@ int main()
     for (int i = 0; i < r.size(); i++){
         cout<<"iteration " << i+1 << endl;
         for (int j = 0; j < blockVect.size(); j++){
+            if (blockVect[j]==r[i]){
+                //cache hit
+                hitCounter++;
+                break;
+            }
             if (blockVect[j]==NULL){
                 //empty cache
                 blockVect[j] = r[i];
                 missCounter++;
                 accessVect.push_back(blockVect[j]);
-                break;
-            }
-            if (blockVect[j]==r[i]){
-                //cache hit
-                hitCounter++;
                 break;
             }
             if (j==blockVect.size()-1){
@@ -86,19 +84,19 @@ int main()
     for (int i = 0; i < r.size(); i++){
         cout<<"iteration " << i+1 << endl;
         for (int j = 0; j < blockVect.size(); j++){
-            if (blockVect[j]==NULL){
-                //empty cache
-                blockVect[j] = r[i];
-                missCounter++;
-                accessVect.push_back(blockVect[j]);
-                break;
-            }
             if (blockVect[j]==r[i]){
                 //cache hit
                 //remove request from LRU vector and place it on the end
                 accessVect.erase(std::remove(accessVect.begin(), accessVect.end(), r[i]), accessVect.end());
                 accessVect.push_back(r[i]);
                 hitCounter++;
+                break;
+            }
+            if (blockVect[j]==NULL){
+                //empty cache
+                blockVect[j] = r[i];
+                missCounter++;
+                accessVect.push_back(blockVect[j]);
                 break;
             }
             if (j==blockVect.size()-1){
@@ -122,4 +120,88 @@ int main()
     cout << "number of LRU misses: " << missCounter <<endl;
     cout << "number of LRU hits: " << hitCounter <<endl;
 
+
+
+
+
+
+    cout << "OPTFF: " << endl;
+
+    vector<int> blockVect3(k, NULL);
+    blockVect=blockVect3;
+    missCounter = 0;
+    hitCounter = 0;
+
+    int blockToSwap = 0;
+    int max=0;
+    int temp=0;
+    int indexFar = 0;
+
+    for (int i = 0; i < r.size(); i++){
+        cout<<"iteration " << i+1 << endl;
+        for (int j = 0; j < blockVect.size(); j++){
+            if (blockVect[j]==r[i]){
+                //cache hit
+                hitCounter++;
+                break;
+            }
+            if (blockVect[j]==NULL){
+                //empty cache
+                blockVect[j] = r[i];
+                missCounter++;
+                break;
+            }
+            if (j==blockVect.size()-1){
+                //request is not in cache
+                blockToSwap = 0;
+                //find the max (cache block next appearance distance)
+                for (int k = 0; k < blockVect.size(); k++){
+                    //last request is a miss, replace first cache
+                    if (i==r.size()-1){
+                        blockVect[0] = r[i];
+                        break;
+                    }
+                    temp = 1;
+                    for (int p = i+1; p < r.size();p++){
+                        cout<<"block: "<<k<<" | index: "<<p<< " | value: "<<r[p]<<" | temp: "<<temp<< " | max: "<<max<<endl;
+                        if (r[p] == blockVect[k]){
+                            if (temp > max){
+                                max = temp;
+                                indexFar = p;
+                                break;
+                            }
+                            break;
+                        }
+                        temp++;
+                        //cache block doesnt appear again
+                        if ((p == r.size()-1) && (max!=INT_MAX)){
+                            max = INT_MAX;  //ensure this is the block that is replaced
+                            cout<<"looking for "<<blockVect[k]<<endl;
+                            for (int v =0;v<r.size();v++){//indexFar is just some index that has the replace block
+                                if (blockVect[k]==r[v]){
+                                    indexFar=v;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                cout<<"max val: "<<max<<endl;
+                cout<<"far index: "<<indexFar<<endl;
+                for (int k = 0; k < blockVect.size(); k++){
+                    //find the cache block with same val at indexFar, replace it with request
+                    if (blockVect[k] == r[indexFar]){
+                        blockVect[k]=r[i];
+                    }
+                }
+                missCounter++;
+            }
+            max=0;
+        }
+        for (int i = 0; i < blockVect.size(); i++) {
+            cout << blockVect[i] << endl;
+        }
+    }
+    cout << "number of OPTFF misses: " << missCounter <<endl;
+    cout << "number of OPTFF hits: " << hitCounter <<endl;
 }
